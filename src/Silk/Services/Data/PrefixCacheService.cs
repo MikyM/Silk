@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Interject;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -15,9 +16,9 @@ namespace Silk.Services.Data;
 public sealed class PrefixCacheService : IPrefixCacheService
 {
     private readonly ILogger<PrefixCacheService> _logger;
-    private readonly IMediator                   _mediator;
+    private readonly IInterjector                _mediator;
     private readonly IMemoryCache                _memoryCache;
-    public PrefixCacheService(ILogger<PrefixCacheService> logger, IMemoryCache memoryCache, IMediator mediator)
+    public PrefixCacheService(ILogger<PrefixCacheService> logger, IMemoryCache memoryCache, IInterjector mediator)
     {
         _logger      = logger;
         _memoryCache = memoryCache;
@@ -46,7 +47,7 @@ public sealed class PrefixCacheService : IPrefixCacheService
 
     private async Task<string> GetDatabasePrefixAsync(Snowflake guildId)
     {
-        GuildEntity? guild = await _mediator.Send(new GetGuild.Request(guildId));
+        GuildEntity? guild = await _mediator.SendAsync(new GetGuild.Request(guildId));
 
         var prefix = guild?.Prefix ?? StringConstants.DefaultCommandPrefix;
         

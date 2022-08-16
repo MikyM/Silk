@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+using Interject;
+using Interject.Contracts;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using NUnit.Framework;
@@ -14,7 +15,7 @@ public class ConfigServiceTests
 {
     private readonly Mock<IMemoryCache>      _cache;
     private readonly GuildConfigCacheService _guildConfigCacheService;
-    private readonly Mock<IMediator>         _mediator;
+    private readonly Mock<IInterjector>      _mediator;
 
     public ConfigServiceTests()
     {
@@ -23,7 +24,7 @@ public class ConfigServiceTests
         _mediator = new() { CallBase = false };
         
         _mediator
-           .Setup(m => m.Send(It.IsAny<IRequest<GuildConfigEntity>>(), It.IsAny<CancellationToken>()))
+           .Setup(m => m.SendAsync(It.IsAny<IRequest<GuildConfigEntity>>(), It.IsAny<CancellationToken>()))
            .ReturnsAsync(new GuildConfigEntity());
 
         _guildConfigCacheService = new(_cache.Object, _mediator.Object);
@@ -37,7 +38,7 @@ public class ConfigServiceTests
         _cache.Setup(cache => cache.TryGetValue(It.IsAny<ulong>(), out discard)).Returns(false);
         await _guildConfigCacheService.GetConfigAsync(new(0));
         //Assert
-        _mediator.Verify(x => x.Send(It.IsAny<GetOrCreateGuildConfig.Request>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mediator.Verify(x => x.SendAsync(It.IsAny<GetOrCreateGuildConfig.Request>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
@@ -45,7 +46,7 @@ public class ConfigServiceTests
     {
         object discard;
         _cache.Setup(cache => cache.TryGetValue(It.IsAny<ulong>(), out discard)).Returns(true);
-        _mediator.Verify(m => m.Send(new(), It.IsAny<CancellationToken>()), Times.Never);
+        _mediator.Verify(m => m.SendAsync(It.IsAny<IRequest<GetOrCreateGuildConfig.Request>>(), It.IsAny<CancellationToken>()), Times.Never);
         
         await _guildConfigCacheService.GetConfigAsync(new(0));
     }

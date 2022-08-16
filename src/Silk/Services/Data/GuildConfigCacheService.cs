@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Interject;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Remora.Rest.Core;
@@ -14,10 +15,10 @@ namespace Silk.Services.Data;
 public class GuildConfigCacheService
 {
     private readonly IMemoryCache _cache;
-    private readonly IMediator    _mediator;
+    private readonly IInterjector _mediator;
     private readonly TimeSpan     _defaultCacheExpiration = TimeSpan.FromMinutes(10);
 
-    public GuildConfigCacheService(IMemoryCache cache, IMediator mediator)
+    public GuildConfigCacheService(IMemoryCache cache, IInterjector mediator)
     {
         _cache    = cache;
         _mediator = mediator;
@@ -41,7 +42,7 @@ public class GuildConfigCacheService
 
     private async Task<GuildConfigEntity> GetConfigFromDatabaseAsync(Snowflake guildId)
     {
-        var configuration = await _mediator.Send(new GetOrCreateGuildConfig.Request(guildId, StringConstants.DefaultCommandPrefix), CancellationToken.None);
+        var configuration = await _mediator.SendAsync(new GetOrCreateGuildConfig.Request(guildId, StringConstants.DefaultCommandPrefix), CancellationToken.None);
         var cacheKey = SilkKeyHelper.GenerateGuildKey(guildId);
         
         _cache.Set(cacheKey, configuration, _defaultCacheExpiration);

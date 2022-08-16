@@ -65,10 +65,10 @@ public partial class ConfigCommands
                     return await _channels.CreateMessageAsync(_context.ChannelID, "This role is above my highest role! I can't assign it.");
 
                 if (mute.Permissions.HasPermission(DiscordPermission.SendMessages))
-                    return await _channels.CreateMessageAsync(_context.ChannelID, "This role can send messages. It's not a good idea to assign it to a mute role.");
+                    return await _channels.CreateMessageAsync(_context.ChannelID, "This role can SendAsync messages. It's not a good idea to assign it to a mute role.");
             }
 
-            await _mediator.Send
+            await _mediator.SendAsync
             (
              new UpdateGuildConfig.Request(_context.GuildID.Value)
              {

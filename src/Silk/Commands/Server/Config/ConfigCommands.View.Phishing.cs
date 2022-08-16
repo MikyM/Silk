@@ -18,7 +18,7 @@ public partial class ConfigCommands
         [Description("View Anti-Phishing settings for your server.")]
         public async Task<IResult> ViewPhishingAsync()
         {
-            var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+            var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
             var guildResult = await _guilds.GetGuildAsync(_context.GuildID.Value);
 

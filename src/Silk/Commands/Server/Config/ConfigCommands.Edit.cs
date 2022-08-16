@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Interject;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -15,7 +16,7 @@ public partial class ConfigCommands
     [Description("Edit the settings for your server.")]
     public partial class EditConfigCommands : CommandGroup
     {
-        private readonly IMediator              _mediator;
+        private readonly IInterjector           _mediator;
         private readonly MessageContext         _context;
         private readonly IDiscordRestGuildAPI   _guilds;
         private readonly IDiscordRestUserAPI    _users;
@@ -24,7 +25,7 @@ public partial class ConfigCommands
         private readonly IDiscordRestWebhookAPI _webhooks;
         public EditConfigCommands
         (
-            IMediator              mediator,
+            IInterjector           mediator,
             MessageContext         context,
             IDiscordRestGuildAPI   guilds,
             IDiscordRestUserAPI    users,

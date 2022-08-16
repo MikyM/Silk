@@ -2,7 +2,8 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using MediatR;
+using Interject;
+using Interject.Contracts;
 using NodaTime;
 using Recognizers.Text.DateTime.Wrapper;
 using Recognizers.Text.DateTime.Wrapper.Models.BclDateTime;
@@ -18,12 +19,12 @@ public sealed class TimeHelper
     private const string ReminderTimeNotPresent = "It seems you didn't specify a time in your reminder.\n" +
                                                   "I can recognize times like 10m, 5h, 2h30m, and even natural language like 'three hours from now' and 'in 2 days'";
     
-    private readonly IMediator             _mediator;
+    private readonly IInterjector             _mediator;
     private readonly IDateTimeZoneProvider _timezones;
 
     private static readonly TimeSpan _buffer = TimeSpan.FromSeconds(2);
     
-    public TimeHelper(IMediator mediator, IDateTimeZoneProvider timezones)
+    public TimeHelper(IInterjector mediator, IDateTimeZoneProvider timezones)
     {
         _mediator  = mediator;
         _timezones = timezones;
@@ -69,7 +70,7 @@ public sealed class TimeHelper
     
     public async Task<Offset?> GetOffsetForUserAsync(Snowflake userID)
     {
-        var user = await _mediator.Send(new GetUser.Request(userID));
+        var user = await _mediator.SendAsync(new GetUser.Request(userID));
 
         if (user is null || user.TimezoneID is null)
             return null;

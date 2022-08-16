@@ -35,7 +35,7 @@ public partial class ConfigCommands
                 return $"{enabled} **`{g.Id}`** ➜ {option} {role}in {channel} \n> {greeting}\n";
             }
 
-            var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+            var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
             Embed embed;
 

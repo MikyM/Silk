@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+using Interject;
+using Interject.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Remora.Rest.Core;
 using Silk.Data.Entities;
@@ -22,12 +23,12 @@ public static class GetOrCreateGuild
     internal sealed class Handler : IRequestHandler<Request, GuildEntity>
     {
         private readonly IDbContextFactory<GuildContext> _dbFactory;
-        private readonly IMediator                       _mediator;
+        private readonly IInterjector                    _mediator;
 
-        public Handler(IDbContextFactory<GuildContext> dbFactory, IMediator mediator)
+        public Handler(IDbContextFactory<GuildContext> dbFactory, IInterjector mediator)
         {
-            _dbFactory       = dbFactory;
-            _mediator = mediator;
+            _dbFactory = dbFactory;
+            _mediator  = mediator;
         }
 
         public async Task<GuildEntity> Handle(Request request, CancellationToken cancellationToken)
@@ -39,7 +40,7 @@ public static class GetOrCreateGuild
             if (guild is not null)
                 return guild;
 
-            guild = await _mediator.Send(new AddGuild.Request(request.GuildID, request.Prefix), cancellationToken);
+            guild = await _mediator.SendAsync(new AddGuild.Request(request.GuildID, request.Prefix), cancellationToken);
 
             return guild;
         }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+using Interject.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -208,6 +208,7 @@ public class Program
                 // If we configure logging after, it'll override the settings with defaults.
 
                 services
+                   .AddInterject(ServiceLifetime.Singleton, typeof(Program).Assembly, typeof(GuildContext).Assembly)
                    .AddSilkConfigurationOptions(context.Configuration)
                    .AddSilkDatabase(context.Configuration)
                    .AddSilkLogging(context.Configuration)
@@ -240,7 +241,7 @@ public class Program
                    .AddSingleton<RaidDetectionService>()
                    .AddHostedService(s => s.GetRequiredService<RaidDetectionService>())
                    .AddSingleton<MessageLoggerService>()
-                   .AddMediatR(c => c.AsTransient(), typeof(Program).Assembly, typeof(GuildContext).Assembly)
+                   .AddInterject(ServiceLifetime.Transient, typeof(Program).Assembly, typeof(GuildContext).Assembly)
                    .AddSentry<SentryLoggingOptions>()
                    .Configure<SentryLoggingOptions>
                     (

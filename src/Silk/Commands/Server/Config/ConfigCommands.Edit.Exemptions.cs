@@ -41,7 +41,7 @@ public partial class ConfigCommands
             ExemptionCoverage[] remove
         )
         {
-            var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+            var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
             
             var exemptions = config.Exemptions;
 
@@ -74,7 +74,7 @@ public partial class ConfigCommands
                 }
             }
             
-            await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value)
+            await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value)
             {
                 Exemptions = config.Exemptions
             });

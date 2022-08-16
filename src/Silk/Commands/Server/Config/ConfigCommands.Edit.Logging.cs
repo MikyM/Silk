@@ -64,7 +64,7 @@ public partial class ConfigCommands
                 return Result<ReactionResult>.FromSuccess(new(Emojis.DeclineId, "`--channel`, `--webhook` or `--mobile true/false` is must be specified."));
             }
 
-            var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+            var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
             var loggingConfig = config.Logging;
             
@@ -106,7 +106,7 @@ public partial class ConfigCommands
                     loggingConfig.Infractions    = null;
                 }
 
-                await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value) { LoggingConfig = loggingConfig });
+                await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value) { LoggingConfig = loggingConfig });
 
                 return Result<ReactionResult>.FromSuccess(new(Emojis.ConfirmId));
             }
@@ -279,7 +279,7 @@ public partial class ConfigCommands
                 }
             }
 
-            await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value) { LoggingConfig = loggingConfig });
+            await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value) { LoggingConfig = loggingConfig });
             return Result<ReactionResult>.FromSuccess(new(Emojis.ConfirmId));
         }
 

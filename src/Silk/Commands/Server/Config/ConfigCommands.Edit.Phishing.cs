@@ -52,12 +52,12 @@ public partial class ConfigCommands
                 _      => throw new ArgumentOutOfRangeException(nameof(action), action, "Impossible condition.")
             };
 
-            var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+            var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
             
             if (action is not null)
                 config!.NamedInfractionSteps[AutoModConstants.PhishingLinkDetected] = new() { Type = parsedAction.Value };
 
-            await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value)
+            await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value)
             {
                 DetectPhishingLinks  = enabled ?? default(Optional<bool>),
                 DeletePhishingLinks  = !preserve,

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using MediatR;
+using Interject;
+using Interject.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -18,21 +19,21 @@ public class GuildTests
     private readonly Snowflake          GuildId          = new(10);
     private const    string             ConnectionString = "Server=localhost; Port=5432; Database=unit_test; Username=silk; Password=silk; Include Error Detail=true;";
     private readonly Checkpoint         _checkpoint      = new() { TablesToIgnore = new Table[] { "__EFMigrationsHistory" }, DbAdapter = DbAdapter.Postgres };
-    private readonly IServiceCollection _provider        = new ServiceCollection();
+    private readonly ServiceCollection _provider        = new ServiceCollection();
 
     private GuildContext _context;
 
-    private IMediator _mediator;
+    private IInterjector _mediator;
 
     [OneTimeSetUp]
     public async Task GlobalSetUp()
     {
         _provider.AddDbContext<GuildContext>(o => o.UseNpgsql(ConnectionString), ServiceLifetime.Transient);
-        _provider.AddMediatR(typeof(GuildContext));
-        _mediator = _provider.BuildServiceProvider().GetRequiredService<IMediator>();
+        _provider.AddInterject(ServiceLifetime.Scoped, typeof(GuildContext).Assembly);
+        _mediator = _provider.BuildServiceProvider().GetRequiredService<IInterjector>();
 
         _context = _provider.BuildServiceProvider().GetRequiredService<GuildContext>();
-        _context.Database.Migrate();
+        await _context.Database.MigrateAsync();
     }
 
     [OneTimeTearDown]
@@ -60,7 +61,7 @@ public class GuildTests
             after;
         //Act
         before = _context.Guilds.Count();
-        result = await _mediator.Send(new GetOrCreateGuild.Request(GuildId, ""));
+        result = await _mediator.SendAsync(new GetOrCreateGuild.Request(GuildId, ""));
         after  = _context.Guilds.Count();
         //Assert
         Assert.IsNotNull(result);
@@ -75,11 +76,11 @@ public class GuildTests
         int before,
             after;
 
-        await _mediator.Send(new GetOrCreateGuild.Request(GuildId, ""));
+        await _mediator.SendAsync(new GetOrCreateGuild.Request(GuildId, ""));
 
         //Act
         before = _context.Guilds.Count();
-        result = await _mediator.Send(new GetOrCreateGuild.Request(GuildId, ""));
+        result = await _mediator.SendAsync(new GetOrCreateGuild.Request(GuildId, ""));
         after  = _context.Guilds.Count();
 
         //Assert
@@ -93,7 +94,7 @@ public class GuildTests
         //Arrange
         GuildEntity? result;
         //Act
-        result = await _mediator.Send(new GetGuild.Request(GuildId));
+        result = await _mediator.SendAsync(new GetGuild.Request(GuildId));
         //Assert
         Assert.IsNull(result);
     }
@@ -103,10 +104,10 @@ public class GuildTests
     {
         //Arrange
         GuildEntity? result;
-        await _mediator.Send(new GetOrCreateGuild.Request(GuildId, ""));
+        await _mediator.SendAsync(new GetOrCreateGuild.Request(GuildId, ""));
 
         //Act
-        result = await _mediator.Send(new GetGuild.Request(GuildId));
+        result = await _mediator.SendAsync(new GetGuild.Request(GuildId));
 
         //Assert
         Assert.IsNotNull(result);

@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Mapster;
-using MediatR;
+using Interject.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Remora.Results;
 using Silk.Data.DTOs.Guilds.Config;

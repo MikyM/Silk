@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+using Interject;
+using Interject.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Remora.Rest.Core;
 using Silk.Data.DTOs.Guilds;
@@ -25,9 +26,9 @@ public static class CreateInfraction
     internal sealed class Handler : IRequestHandler<Request, Infraction>
     {
         private readonly IDbContextFactory<GuildContext> _dbFactory;
-        private readonly IMediator                       _mediator;
+        private readonly IInterjector                       _mediator;
 
-        public Handler(IDbContextFactory<GuildContext> dbFactory, IMediator mediator)
+        public Handler(IDbContextFactory<GuildContext> dbFactory, IInterjector mediator)
         {
             _dbFactory = dbFactory;
             _mediator  = mediator;
@@ -48,8 +49,8 @@ public static class CreateInfraction
             
             await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
 
-            await _mediator.Send(new GetOrCreateUser.Request(request.GuildID, request.TargetID), cancellationToken);
-            await _mediator.Send(new GetOrCreateUser.Request(request.GuildID, request.EnforcerID), cancellationToken);
+            await _mediator.SendAsync(new GetOrCreateUser.Request(request.GuildID, request.TargetID), cancellationToken);
+            await _mediator.SendAsync(new GetOrCreateUser.Request(request.GuildID, request.EnforcerID), cancellationToken);
             
             db.Infractions.Add(infraction);
             await db.SaveChangesAsync(cancellationToken);

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Interject;
 using MediatR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -30,7 +31,7 @@ public class GuildGreetingService : IHostedService
     private readonly GuildConfigCacheService       _config;
     private readonly ILogger<GuildGreetingService> _logger;
 
-    private readonly IMediator              _mediator;
+    private readonly IInterjector           _mediator;
     private readonly ShardHelper            _shardHelper;
     private readonly IDiscordRestUserAPI    _users;
     private readonly IDiscordRestGuildAPI   _guildApi;
@@ -39,7 +40,7 @@ public class GuildGreetingService : IHostedService
     public GuildGreetingService
     (
        
-        IMediator                     mediator,
+        IInterjector                  mediator,
         ShardHelper                   shardHelper,
         IDiscordRestUserAPI           users,
         IDiscordRestGuildAPI          guilds,
@@ -66,7 +67,7 @@ public class GuildGreetingService : IHostedService
         _logger.LogInformation("Greeting service starting...");
         
         _logger.LogDebug("Fetching pending greetings...");
-        var greetings = await _mediator.Send(new GetPendingGreetings.Request(), cancellationToken);
+        var greetings = await _mediator.SendAsync(new GetPendingGreetings.Request(), cancellationToken);
         
         _pendingGreetings.AddRange(greetings.Where(g => _shardHelper.IsRelevantToCurrentShard(g.GuildID)));
         
@@ -125,7 +126,7 @@ public class GuildGreetingService : IHostedService
 
             if (greeting.Option is GreetingOption.GreetOnRole)
             {
-                var greetingResult = await _mediator.Send(new AddPendingGreeting.Request(user.ID, guildID, greeting.Id));
+                var greetingResult = await _mediator.SendAsync(new AddPendingGreeting.Request(user.ID, guildID, greeting.Id));
 
                 if (greetingResult.IsSuccess)
                 {
@@ -160,7 +161,7 @@ public class GuildGreetingService : IHostedService
                 _logger.LogError("Failed to get member {User} in guild {Guild}", pending.UserID, pending.GuildID);
                 
                 _pendingGreetings.RemoveAt(i);
-                await _mediator.Send(new RemovePendingGreeting.Request(pending.Id));
+                await _mediator.SendAsync(new RemovePendingGreeting.Request(pending.Id));
                 continue;
             }
 
@@ -179,7 +180,7 @@ public class GuildGreetingService : IHostedService
                 continue;
             
             _pendingGreetings.RemoveAt(i);
-            await _mediator.Send(new RemovePendingGreeting.Request(pending.Id));
+            await _mediator.SendAsync(new RemovePendingGreeting.Request(pending.Id));
             
             var res = await GreetAsync(pending.GuildID, pending.UserID, greeting.ChannelID, greeting.Message);
             
