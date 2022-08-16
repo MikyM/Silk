@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Interject;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
@@ -13,12 +14,12 @@ namespace Silk.Responders;
 
 public class GuildShedderResponder : IResponder<IReady>
 {
-    private readonly IMediator                      _mediator;
+    private readonly IInterjector                   _mediator;
     private readonly IShardIdentification           _shard;
     private readonly ILogger<GuildShedderResponder> _logger;
    
     
-    public GuildShedderResponder(IMediator mediator, IShardIdentification shard, ILogger<GuildShedderResponder> logger)
+    public GuildShedderResponder(IInterjector mediator, IShardIdentification shard, ILogger<GuildShedderResponder> logger)
     {
         _mediator = mediator;
         _shard    = shard;
@@ -29,7 +30,7 @@ public class GuildShedderResponder : IResponder<IReady>
     {
         _logger.LogInformation("Preparring to shed guilds...");
 
-        var shed = await _mediator.Send(new ShedGuilds.Request(_shard.ShardID, _shard.ShardCount, gatewayEvent.Guilds.Select(g => g.ID).ToArray()), ct);
+        var shed = await _mediator.SendAsync(new ShedGuilds.Request(_shard.ShardID, _shard.ShardCount, gatewayEvent.Guilds.Select(g => g.ID).ToArray()), ct);
         
         if (shed.IsSuccess)
             _logger.LogInformation("Successfully shed {ShedCount} guilds.", shed.Entity);

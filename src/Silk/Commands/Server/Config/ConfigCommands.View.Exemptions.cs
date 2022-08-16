@@ -31,7 +31,7 @@ public partial class ConfigCommands
         [Description("View Exemption settings for your server.")]
         public async Task<IResult> ViewExemptionsAsync()
         {
-            var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+            var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
             var guildResult = await _guilds.GetGuildAsync(_context.GuildID.Value);
 

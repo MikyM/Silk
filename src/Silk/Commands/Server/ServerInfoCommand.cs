@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Humanizer;
+using Interject;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Discord.API;
@@ -25,13 +26,13 @@ namespace Silk.Commands.Server;
 [Category(Categories.Server)]
 public class ServerInfoCommand : CommandGroup
 {
-    private readonly IMediator              _mediator;
+    private readonly IInterjector           _mediator;
     private readonly ICommandContext        _context;
     private readonly IDiscordRestGuildAPI   _guilds;
     private readonly IDiscordRestChannelAPI _channels;
     
     
-    public ServerInfoCommand(IMediator mediator, ICommandContext context, IDiscordRestGuildAPI guilds, IDiscordRestChannelAPI channels)
+    public ServerInfoCommand(IInterjector mediator, ICommandContext context, IDiscordRestGuildAPI guilds, IDiscordRestChannelAPI channels)
     {
         _mediator = mediator;
         _context  = context;
@@ -96,7 +97,7 @@ public class ServerInfoCommand : CommandGroup
 
         fields.Add(new EmbedField("Server Owner:", $"<@{guild.OwnerID}>", true));
         
-        var recent = await _mediator.Send(new GetMostRecentUser.Request(_context.GuildID.Value));
+        var recent = await _mediator.SendAsync(new GetMostRecentUser.Request(_context.GuildID.Value));
         
         fields.Add(new EmbedField("Most Recent Member:", $"<@{recent?.ID}>", true));
         

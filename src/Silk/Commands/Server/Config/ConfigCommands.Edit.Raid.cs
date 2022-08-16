@@ -65,7 +65,7 @@ public partial class ConfigCommands
                 RaidThreshold = threshold ?? default(Optional<int>)
             };
             
-            await _mediator.Send(request);
+            await _mediator.SendAsync(request);
             
             return Result<ReactionResult>.FromSuccess(new(Emojis.ConfirmId));
         }

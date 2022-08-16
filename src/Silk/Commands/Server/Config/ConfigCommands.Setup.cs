@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Humanizer;
+using Interject;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -48,13 +49,13 @@ public partial class ConfigCommands
 
         private static readonly DiscordPermissionSet _modlogPermissions = new(DiscordPermission.ViewChannel, DiscordPermission.ReadMessageHistory);
 
-        private readonly IMediator              _mediator;
+        private readonly IInterjector           _mediator;
         private readonly MessageContext         _context;
         private readonly IDiscordRestUserAPI    _users;
         private readonly IDiscordRestGuildAPI   _guilds;
         public readonly  IDiscordRestChannelAPI _channels;
         
-        public Setup(IMediator mediator, MessageContext context, IDiscordRestUserAPI users, IDiscordRestGuildAPI guilds, IDiscordRestChannelAPI channels)
+        public Setup(IInterjector mediator, MessageContext context, IDiscordRestUserAPI users, IDiscordRestGuildAPI guilds, IDiscordRestChannelAPI channels)
         {
             _mediator = mediator;
             _context  = context;
@@ -311,7 +312,7 @@ public partial class ConfigCommands
             {
                 sb.AppendLine("\t\t ➜ Setting join and deletes channel to mod-log channel...");
 
-                var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+                var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
                 config.Logging.LogMemberJoins = true;
                 config.Logging.LogMessageDeletes = true;
@@ -321,7 +322,7 @@ public partial class ConfigCommands
 
                 try
                 {
-                    await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value) { LoggingConfig = config.Logging });
+                    await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value) { LoggingConfig = config.Logging });
                     
                     sb.AppendLine("\t\t ➜ Join and delete logging channels set!");
                     return Result.FromSuccess();
@@ -338,7 +339,7 @@ public partial class ConfigCommands
                 sb.AppendLine("\t\t ➜ Enabling invite whitelist...");
                 await _channels.EditMessageAsync(_context.ChannelID, message.ID, InProgressTitle + sb);
 
-                await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value)
+                await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value)
                 {
                     ScanInvites           = true,
                     BlacklistInvites      = true,
@@ -356,14 +357,14 @@ public partial class ConfigCommands
             {
                 sb.AppendLine("\t\t ➜ Enabling infraction logging...");
                 
-                var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+                var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
                 
                 config.Logging.LogInfractions = true;
                 config.Logging.Infractions = new() { ChannelID = channel!.ID, GuildID = _context.GuildID.Value };
                 
                 try
                 {
-                    await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value) { LoggingConfig = config.Logging });
+                    await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value) { LoggingConfig = config.Logging });
 
                     sb.RemoveLine();
                     sb.AppendLine("\t\t ➜ Infraction logging enabled!");
@@ -380,11 +381,11 @@ public partial class ConfigCommands
             {
                 sb.AppendLine("\t\t ➜ Enabling phishing detection...");
 
-                var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+                var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
                 
                 config.NamedInfractionSteps.Add(AutoModConstants.PhishingLinkDetected, new() { Type = InfractionType.Ban });
                 
-                await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value)
+                await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value)
                 {
                     DeletePhishingLinks = true,
                     DetectPhishingLinks = true,

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Humanizer;
+using Interject;
 using MediatR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -26,7 +27,7 @@ namespace Silk.Services.Guild;
 public sealed class ReminderService : IHostedService
 {
     
-    private readonly IMediator                _mediator;
+    private readonly IInterjector             _mediator;
     private readonly ShardHelper              _shardhelper;
     private readonly IDiscordRestUserAPI      _users;
     private readonly IDiscordRestChannelAPI   _channels;
@@ -40,7 +41,7 @@ public sealed class ReminderService : IHostedService
 
     public ReminderService
     (
-        IMediator                mediator,
+        IInterjector             mediator,
         ShardHelper              shardhelper,
         IDiscordRestUserAPI      users,
         IDiscordRestChannelAPI   channels,
@@ -69,7 +70,7 @@ public sealed class ReminderService : IHostedService
         Snowflake?     replyAuthorID = null
     )
     {
-        ReminderEntity reminder = await _mediator.Send(new CreateReminder.Request(expiry, ownerID, channelID, messageID, guildID, content, replyID, replyAuthorID, replyContent));
+        ReminderEntity reminder = await _mediator.SendAsync(new CreateReminder.Request(expiry, ownerID, channelID, messageID, guildID, content, replyID, replyAuthorID, replyContent));
         _reminders.Add(reminder);
         SilkMetric.LoadedReminders.Inc();
         _logger.LogDebug("Created reminder {ReminderID}", reminder.Id);
@@ -81,7 +82,7 @@ public sealed class ReminderService : IHostedService
     /// <param name="userID">The ID of the user to search reminders for.</param>
     /// <returns>The specified user's reminders.</returns>
     public Task<IEnumerable<ReminderEntity>> GetUserRemindersAsync(Snowflake userID) 
-        => _mediator.Send(new GetRemindersForUser.Request(userID));
+        => _mediator.SendAsync(new GetRemindersForUser.Request(userID));
 
     /// <summary>
     ///     The main dispatch loop, which iterates all active reminders, and dispatches them if they're due.
@@ -119,7 +120,7 @@ public sealed class ReminderService : IHostedService
             SilkMetric.LoadedReminders.Dec();
         }
         
-        return await _mediator.Send(new RemoveReminder.Request(id));
+        return await _mediator.SendAsync(new RemoveReminder.Request(id));
     }
 
     private async Task<Result> DispatchReminderAsync(ReminderEntity reminder)
@@ -310,7 +311,7 @@ public sealed class ReminderService : IHostedService
         DateTime now = DateTime.UtcNow;
         _logger.LogInformation(EventIds.Service, "Loading reminders...");
 
-        IEnumerable<ReminderEntity> reminders = await _mediator.Send(new GetAllReminders.Request(), cancellationToken);
+        IEnumerable<ReminderEntity> reminders = await _mediator.SendAsync(new GetAllReminders.Request(), cancellationToken);
         _reminders = reminders.Where(r => _shardhelper.IsRelevantToCurrentShard(r.GuildID)).ToList();
 
         _logger.LogInformation(EventIds.Service, "Loaded {ReminderCount} reminders in {ExecutionTime:N0} ms", _reminders.Count, (DateTime.UtcNow - now).TotalMilliseconds);

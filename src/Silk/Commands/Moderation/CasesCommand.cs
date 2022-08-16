@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Humanizer;
+using Interject;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -26,13 +27,13 @@ namespace Silk.Commands.Moderation;
 [Category(Categories.Mod)]
 public class CasesCommand : CommandGroup
 {
-    private readonly IMediator              _mediator;
+    private readonly IInterjector           _mediator;
     private readonly ICommandContext        _context;
     private readonly IDiscordRestChannelAPI _channels;
     
     private readonly FeedbackService _interactivity;
     
-    public CasesCommand(IMediator mediator, ICommandContext context, IDiscordRestChannelAPI channels, FeedbackService interactivity)
+    public CasesCommand(IInterjector mediator, ICommandContext context, IDiscordRestChannelAPI channels, FeedbackService interactivity)
     {
         _mediator      = mediator;
         _context       = context;
@@ -46,7 +47,7 @@ public class CasesCommand : CommandGroup
     [RequireDiscordPermission(DiscordPermission.ManageMessages)]
     public async Task<Result<IMessage>> ViewCaseAsync(int caseID)
     {
-        var infCase = await _mediator.Send(new GetUserInfractionForGuild.Request(default, _context.GuildID.Value, default, caseID));
+        var infCase = await _mediator.SendAsync(new GetUserInfractionForGuild.Request(default, _context.GuildID.Value, default, caseID));
         
         if (infCase is null)
             return await _channels.CreateMessageAsync(_context.ChannelID, "Case not found.");
@@ -76,7 +77,7 @@ public class CasesCommand : CommandGroup
     [Description("Fetch all infractions for a user including kicks, mutes, and more.")]
     public async Task<Result<IMessage>> Cases(IUser user)
     {
-        var cases = await _mediator.Send(new GetUserInfractionsForGuild.Request(_context.GuildID.Value, user.ID));
+        var cases = await _mediator.SendAsync(new GetUserInfractionsForGuild.Request(_context.GuildID.Value, user.ID));
         
         if (!cases.Any())
             return await _channels.CreateMessageAsync(_context.ChannelID, "It appears this user is clean. They should keep it up!");

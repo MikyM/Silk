@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Interject;
+using Interject.Extensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,18 +23,18 @@ public class UserTests
     private readonly Snowflake          GuildId          = new(10);
     private const    string             ConnectionString = "Server=localhost; Port=5432; Database=unit_test; Username=silk; Password=silk; Include Error Detail=true;";
     private readonly Checkpoint         _checkpoint      = new() { TablesToIgnore = new Table[] { "guilds", "__EFMigrationsHistory" }, DbAdapter = DbAdapter.Postgres };
-    private readonly IServiceCollection _provider        = new ServiceCollection();
+    private readonly ServiceCollection _provider        = new ServiceCollection();
 
     private GuildContext _context;
 
-    private IMediator _mediator;
+    private IInterjector _mediator;
 
     [OneTimeSetUp]
     public async Task GlobalSetUp()
     {
         _provider.AddDbContext<GuildContext>(o => o.UseNpgsql(ConnectionString), ServiceLifetime.Transient);
-        _provider.AddMediatR(typeof(GuildContext));
-        _mediator = _provider.BuildServiceProvider().GetRequiredService<IMediator>();
+        _provider.AddInterject(ServiceLifetime.Scoped, typeof(GuildContext).Assembly);
+        _mediator = _provider.BuildServiceProvider().GetRequiredService<IInterjector>();
 
         _context = _provider.BuildServiceProvider().GetRequiredService<GuildContext>();
         await _context.Database.MigrateAsync();
@@ -66,7 +68,7 @@ public class UserTests
         //Arrange
         User? user;
         //Act
-        user = await _mediator.Send(new GetUser.Request(UserId));
+        user = await _mediator.SendAsync(new GetUser.Request(UserId));
         //Assert
         Assert.IsNull(user);
     }
@@ -76,9 +78,9 @@ public class UserTests
     {
         //Arrange
         User? user;
-        await _mediator.Send(new GetOrCreateUser.Request(GuildId, UserId));
+        await _mediator.SendAsync(new GetOrCreateUser.Request(GuildId, UserId));
         //Act
-        user = await _mediator.Send(new GetUser.Request(UserId));
+        user = await _mediator.SendAsync(new GetUser.Request(UserId));
         //Assert
         Assert.IsNotNull(user);
     }
@@ -89,8 +91,8 @@ public class UserTests
         //Arrange
         User? user;
         //Act
-        await _mediator.Send(new GetOrCreateUser.Request(GuildId, UserId));
-        user = await _mediator.Send(new GetUser.Request(UserId));
+        await _mediator.SendAsync(new GetOrCreateUser.Request(GuildId, UserId));
+        user = await _mediator.SendAsync(new GetUser.Request(UserId));
         //Assert
         Assert.IsNotNull(user);
     }
@@ -100,9 +102,9 @@ public class UserTests
     {
         //Arrange
         Result<UserEntity> user;
-        await _mediator.Send(new GetOrCreateUser.Request(GuildId, UserId));
+        await _mediator.SendAsync(new GetOrCreateUser.Request(GuildId, UserId));
         //Act
-        user = await _mediator.Send(new GetOrCreateUser.Request(GuildId, UserId));
+        user = await _mediator.SendAsync(new GetOrCreateUser.Request(GuildId, UserId));
         //Assert
         Assert.IsTrue(user.IsSuccess);
     }

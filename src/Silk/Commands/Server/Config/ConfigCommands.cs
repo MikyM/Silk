@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Interject;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -68,14 +69,14 @@ public partial class ConfigCommands : CommandGroup
     [Description("View the settings for your server.")]
     public partial class ViewConfigCommands : CommandGroup
     {
-        private readonly IMediator              _mediator;
+        private readonly IInterjector           _mediator;
         private readonly MessageContext         _context;
         private readonly IDiscordRestGuildAPI   _guilds;
         private readonly IDiscordRestChannelAPI _channels;
 
         public ViewConfigCommands
         (
-            IMediator              mediator,
+            IInterjector           mediator,
             MessageContext         context,
             IDiscordRestGuildAPI   guilds,
             IDiscordRestChannelAPI channels
@@ -94,7 +95,7 @@ public partial class ConfigCommands : CommandGroup
                      "Each section can be configured with `config edit` and the respective section name.")]
         public async Task<IResult> ViewAllAsync()
         {
-            var config    = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+            var config    = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
             var guildResult = await _guilds.GetGuildAsync(_context.GuildID.Value);
 

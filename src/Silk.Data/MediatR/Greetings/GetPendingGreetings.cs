@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+using Interject.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Silk.Data.Entities;
 

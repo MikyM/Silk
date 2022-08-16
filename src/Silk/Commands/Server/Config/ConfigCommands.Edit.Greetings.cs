@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Interject;
 using MediatR;
 using Remora.Commands.Attributes;
 using Remora.Commands.Groups;
@@ -25,7 +26,7 @@ public partial class ConfigCommands
         [Group("greetings", "greeting", "welcome")]
         public class GreetingCommands : CommandGroup
         {
-            private readonly IMediator              _mediator;
+            private readonly IInterjector           _mediator;
             private readonly MessageContext         _context;
             private readonly IDiscordRestChannelAPI _channels;
 
@@ -39,7 +40,7 @@ public partial class ConfigCommands
 
             public GreetingCommands
             (
-                IMediator              mediator,
+                IInterjector           mediator,
                 MessageContext         context,
                 IDiscordRestChannelAPI channels
             )
@@ -63,7 +64,7 @@ public partial class ConfigCommands
                 [Greedy]
                 [Description
                  (
-                        "The welcome message to send. \n"                                  +
+                        "The welcome message to SendAsync. \n"                                  +
                         "The following subsitutions are supported:\n"                      +
                         "`{s}` - The name of the server.\n"                                +
                         "`{u}` - The username of the user who joined.\n"                   +
@@ -91,7 +92,7 @@ public partial class ConfigCommands
                     return Result<ReactionResult>.FromSuccess(new(Emojis.DeclineId));
                 }
 
-                var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+                var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
                 if (config.Greetings.FirstOrDefault(g => g.ChannelID == channel.ID) is { } existingGreeting)
                 {
@@ -114,7 +115,7 @@ public partial class ConfigCommands
                     Option     = (GreetingOption)option
                 };
 
-                var result = await _mediator.Send(new AddGuildGreeting.Request(greetingDto));
+                var result = await _mediator.SendAsync(new AddGuildGreeting.Request(greetingDto));
                 if (!result.IsDefined(out var savedGreeting))
                 {
                     await _channels.CreateMessageAsync(_context.ChannelID, "Failed to create greeting!");
@@ -147,7 +148,7 @@ public partial class ConfigCommands
                 IRole? role = null,
                 
                 [Option("channel")]
-                [Description("The new channel to send greetings to")]
+                [Description("The new channel to SendAsync greetings to")]
                 IChannel? channel = null,
                 
                 [Greedy]
@@ -156,7 +157,7 @@ public partial class ConfigCommands
                 string? greeting = null
             )
             {
-                var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+                var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
                 var greetingEntity = config.Greetings.FirstOrDefault(x => x.Id == GreetingID);
 
@@ -181,7 +182,7 @@ public partial class ConfigCommands
                 if (option is not null)
                     greetingEntity.Option = (GreetingOption)option;
 
-                await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value) { Greetings = config.Greetings });
+                await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value) { Greetings = config.Greetings });
 
                 var message = $"Updated greeting with ID `{greetingEntity.Id}`\n\n";
 
@@ -200,7 +201,7 @@ public partial class ConfigCommands
                 [Description("The ID of the greeting to delete.")] int GreetingID
             )
             {
-                var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+                var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
 
                 var greetingEntity = config.Greetings.FirstOrDefault(x => x.Id == GreetingID);
 
@@ -213,7 +214,7 @@ public partial class ConfigCommands
 
                 config.Greetings.Remove(greetingEntity);
 
-                await _mediator.Send(new UpdateGuildConfig.Request(_context.GuildID.Value) { Greetings = config.Greetings });
+                await _mediator.SendAsync(new UpdateGuildConfig.Request(_context.GuildID.Value) { Greetings = config.Greetings });
 
                 await _channels.CreateMessageAsync(_context.ChannelID, $"Deleted greeting with ID `{greetingEntity.Id}`");
 

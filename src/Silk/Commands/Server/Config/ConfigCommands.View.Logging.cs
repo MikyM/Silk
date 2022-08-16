@@ -17,7 +17,7 @@ public partial class ConfigCommands
         [Description("View the logging configuration.")]
         public async Task<IResult> ViewLoggingAsync()
         {
-            var config = await _mediator.Send(new GetGuildConfig.Request(_context.GuildID.Value));
+            var config = await _mediator.SendAsync(new GetGuildConfig.Request(_context.GuildID.Value));
             var logging = config.Logging;
 
             var webhookLoggingEnabled = logging.UseWebhookLogging ? Emojis.EnabledEmoji : Emojis.DisabledEmoji;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+using Interject.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Remora.Rest.Core;
 using Silk.Data.Entities;
@@ -29,12 +29,12 @@ public static class BulkAddUserToGuild
     /// <summary>
     /// The default handler for <see cref="Request" />.
     /// </summary>
-    internal sealed class Handler : IRequestHandler<Request>
+    internal sealed class Handler : IRequestHandler<Request, Unit>
     {
         private readonly IDbContextFactory<GuildContext> _dbFactory;
         public Handler(IDbContextFactory<GuildContext> dbFactory) => _dbFactory = dbFactory;
 
-        public async Task<Unit> Handle(Request request, CancellationToken  cancellationToken)
+        public async Task<Unit> Handle(Request request, CancellationToken cancellationToken)
         {
             await using var db = await _dbFactory.CreateDbContextAsync(cancellationToken);
             

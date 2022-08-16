@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Interject;
 using MediatR;
 using Remora.Discord.API;
 using Remora.Discord.API.Abstractions.Objects;
@@ -31,11 +32,11 @@ public class MemberLoggerService
     private const int TwoDays              = 2;
     private const int HalfDay              = 12;
     
-    private readonly IMediator               _mediator;
+    private readonly IInterjector            _mediator;
     private readonly GuildConfigCacheService _configService;
-    private readonly IChannelLoggingService   _channelLogger;
+    private readonly IChannelLoggingService  _channelLogger;
     
-    public MemberLoggerService(IMediator mediator, GuildConfigCacheService configService, IChannelLoggingService channelLogger)
+    public MemberLoggerService(IInterjector mediator, GuildConfigCacheService configService, IChannelLoggingService channelLogger)
     {
         _mediator      = mediator;
         _configService = configService;
@@ -60,7 +61,7 @@ public class MemberLoggerService
         var twoDaysOld = user.ID.Timestamp.AddDays(TwoDays) > DateTimeOffset.UtcNow;
         var twoWeeksOld = user.ID.Timestamp.AddDays(TwoWeeks) > DateTimeOffset.UtcNow;
         
-        var userResult = await _mediator.Send(new GetOrCreateUser.Request(guildID, user.ID, member.JoinedAt));
+        var userResult = await _mediator.SendAsync(new GetOrCreateUser.Request(guildID, user.ID, member.JoinedAt));
         
         if (!userResult.IsDefined(out var userData))
             return Result.FromError(userResult.Error!);
@@ -164,7 +165,7 @@ public class MemberLoggerService
 
         var sb = new StringBuilder();
         
-        var userResult = await _mediator.Send(new GetUser.Request(user.ID));
+        var userResult = await _mediator.SendAsync(new GetUser.Request(user.ID));
         
         var fields = new List<EmbedField>
         {
